@@ -3,14 +3,14 @@ import cv2
 
 original_image, working_image = None, None
 relative_image_folder_path = "../../BBBC010_v1_images/"
-image_names = []
+image_names = None
 current_image_index = -1
 current_image_path = ""
 
 
 def load_image(image_path):
     global working_image, original_image
-    working_image = cv2.imread(image_path, cv2.IMREAD_COLOR)
+    working_image = cv2.imread(image_path, 0)  # 0 for gray scale
     original_image = working_image[::]
     return
 
@@ -33,9 +33,9 @@ def cycle_images():
 def load_and_process_next_image():
     global working_image
     cycle_images()
-    working_image = adjust_gamma(working_image, 6.5)
-    # img = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2) # todo rewrite?
-    # ret, th1 = cv2.threshold(img,140,150,cv2.THRESH_BINARY)
+    # working_image = adjust_gamma(working_image, 6.5)
+    working_image = cv2.equalizeHist(working_image)
+    # tasks from the .docx
     return
 
 

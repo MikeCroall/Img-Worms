@@ -85,11 +85,11 @@ while keep_processing:
     w2 = np.hstack((original_image_w2, working_image_w2))
 
     if label_images:
-        o_w1_labelled = original_image_w1[::]
-        o_w2_labelled = original_image_w2[::]
-        w_w1_labelled = working_image_w1[::]
-        w_w2_labelled = working_image_w2[::]
-        cv2.putText(o_w1_labelled, 'original w1', (10, 510), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 4, cv2.LINE_AA)
+        o_w1_labelled = original_image_w1[::].copy()
+        o_w2_labelled = original_image_w2[::].copy()
+        w_w1_labelled = working_image_w1[::].copy()
+        w_w2_labelled = working_image_w2[::].copy()
+        cv2.putText(o_w1_labelled, 'original w1', (10, 510), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 1, cv2.LINE_AA)
         cv2.putText(o_w2_labelled, 'original w2', (10, 510), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 1, cv2.LINE_AA)
         cv2.putText(w_w1_labelled, 'processed w1', (10, 510), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 1, cv2.LINE_AA)
         cv2.putText(w_w2_labelled, 'processed w2', (10, 510), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 1, cv2.LINE_AA)
@@ -106,7 +106,5 @@ while keep_processing:
         load_and_process_next_images()
     elif key == ord('l'):
         label_images = not label_images
-        print("label_images: " + str(label_images))
 
 # todo fix image loop around (when pressing n)
-# todo fix labels not disappearing on l press

@@ -64,9 +64,12 @@ def process_image(img, is_w1=True):
         ret, img = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY)
     else:
         img = cv2.equalizeHist(img)
+        img = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 11, 2)
 
+    # todo next, contour everything, and ignore any with area bigger than or smaller than the worms,
+    # todo       eliminating borders and noise hopefully
 
-    # todo tasks from the .docx
+    # todo more tasks from the .docx
 
     # maybe useful:
     # http://docs.opencv.org/trunk/d3/db4/tutorial_py_watershed.html

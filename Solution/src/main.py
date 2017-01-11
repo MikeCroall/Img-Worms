@@ -11,6 +11,10 @@ current_index = -1
 current_w1_path = ""
 current_w2_path = ""
 
+save_when_processed = True
+keep_processing = True
+label_images = True
+
 
 def load_images(w1_path, w2_path):
     global working_image_w1, original_image_w1
@@ -56,6 +60,8 @@ def load_and_process_next_images():
     cycle_images()
     working_image_w1 = process_image(working_image_w1, True)
     working_image_w2 = process_image(working_image_w2, False)
+    if save_when_processed:
+        save_images(working_image_w1, working_image_w2)
     return
 
 
@@ -88,9 +94,6 @@ cv2.setMouseCallback(main_window_name, mouse_press_callback)
 cv2.namedWindow(main_window_name, cv2.WINDOW_NORMAL)
 image_names = load_image_paths()
 load_and_process_next_images()
-keep_processing = True
-label_images = True
-
 
 while keep_processing:
     w1, w2 = None, None

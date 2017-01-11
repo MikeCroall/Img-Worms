@@ -48,8 +48,11 @@ def process_image(img, is_w1=True):
     # img = adjust_gamma(img, 6.5)
     if is_w1:
         # set ANYTHING above black to be white
-        pass
-    img = cv2.equalizeHist(img)
+        ret, img = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY)
+    else:
+        img = cv2.equalizeHist(img)
+
+
     # todo tasks from the .docx
 
     # maybe useful:

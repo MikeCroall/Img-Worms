@@ -37,6 +37,7 @@ def cycle_images():
     current_index = (current_index + 1) % len(image_names)
     current_w2_path = relative_image_folder_path + image_names[current_index]
     original_file_name = str(image_names[current_index])
+    print("Loading images marked {}".format(original_file_name[33:36]))
     load_images(current_w1_path, current_w2_path)
     return
 
@@ -60,7 +61,6 @@ def load_and_process_next_images():
 
 def process_image(img, is_w1=True):
     if is_w1:
-        # set ANYTHING above black to be white
         ret, img = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY)
     else:
         img = cv2.equalizeHist(img)
@@ -122,5 +122,3 @@ while keep_processing:
         label_images = not label_images
     elif key == ord('s'):
         save_images(working_image_w1, working_image_w2)
-
-# todo fix image loop around (when pressing n)

@@ -11,7 +11,7 @@ current_index = -1
 current_w1_path = ""
 current_w2_path = ""
 
-save_when_processed = True
+save_when_processed = False
 keep_processing = True
 label_images = True
 
@@ -32,11 +32,6 @@ def load_images(w1_path, w2_path):
     working_image_w2 = np.array(w2img16b, dtype=np.uint8)
     original_image_w2 = working_image_w2.copy()
     return
-
-
-def load_image_paths():
-    image_names_file = open("imgs.txt", "r")
-    return [x for x in image_names_file.read().split("\n") if not x.lstrip().startswith("#")]
 
 
 def cycle_images():
@@ -84,17 +79,10 @@ def process_image(img, is_w1=True):
     return img
 
 
-def mouse_press_callback(event, x, y, flags, param):
-    global working_image_w1
-    if event == cv2.EVENT_LBUTTONDOWN:
-        print("Pos:{},{} B:{} G:{} R:{}".format(x, y, working_image_w1[y, x, 0], working_image_w1[y, x, 1],
-                                                working_image_w1[y, x, 2]))
-
-
 main_window_name = "n - cycle images, l - toggle labels, s - save current images, x - exit"
-cv2.setMouseCallback(main_window_name, mouse_press_callback)
 cv2.namedWindow(main_window_name, cv2.WINDOW_NORMAL)
-image_names = load_image_paths()
+with open("imgs.txt", "r") as image_names_file:
+    image_names = [x for x in image_names_file.read().split("\n") if not x.lstrip().startswith("#")]
 load_and_process_next_images()
 
 while keep_processing:

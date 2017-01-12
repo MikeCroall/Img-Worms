@@ -20,14 +20,16 @@ def load_images(w1_path, w2_path):
     global working_image_w1, original_image_w1
     global working_image_w2, original_image_w2
 
-    # 0 for gray scale (8 bit)
-    working_image_w1 = cv2.imread(w1_path, 0)
+    # -1 for importing as is (16bit), right shift it then make 8bit to extract more information than importing as 8bit
+    w1img16 = cv2.imread(w1_path, -1)
+    w1img16b = np.right_shift(w1img16, 4)
+    working_image_w1 = np.array(w1img16b, dtype=np.uint8)
     original_image_w1 = working_image_w1.copy()
 
     # -1 for importing as is (16bit), right shift it then make 8bit to extract more information than importing as 8bit
-    img16 = cv2.imread(w2_path, -1)
-    img16b = np.right_shift(img16, 4)
-    working_image_w2 = np.array(img16b, dtype=np.uint8)
+    w2img16 = cv2.imread(w2_path, -1)
+    w2img16b = np.right_shift(w2img16, 4)
+    working_image_w2 = np.array(w2img16b, dtype=np.uint8)
     original_image_w2 = working_image_w2.copy()
     return
 
@@ -70,11 +72,7 @@ def load_and_process_next_images():
 
 
 def process_image(img, is_w1=True):
-    if is_w1:
-        ret, img = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY)
-    else:
-        img = cv2.equalizeHist(img)
-        img = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 11, 2)
+    img = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 11, 2)
 
     # todo next, contour everything, and ignore any with area bigger than or smaller than the worms,
     # todo       eliminating borders and noise hopefully

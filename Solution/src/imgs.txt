@@ -1,3 +1,8 @@
+###############################
+#
+# Not ALL images have a w1 AND a w2 version - D24 for example has no w2, and so is EXCLUDED from imgs.txt
+#
+###############################
 1649_1109_0003_Amp5-1_B_20070424_A01_w1_9E84F49F-1B25-4E7E-8040-D1BB2D7E73EA.tif
 1649_1109_0003_Amp5-1_B_20070424_A01_w2_15ADF48D-C09E-47DE-B763-5BC479534681.tif
 1649_1109_0003_Amp5-1_B_20070424_A02_w1_773004B9-5D0A-4322-AFC2-CF6D9D5068A9.tif

@@ -11,7 +11,7 @@ current_index = -1
 current_w1_path = ""
 current_w2_path = ""
 
-save_when_processed = True
+save_when_processed = False
 keep_processing = True
 label_images = True
 
@@ -30,7 +30,7 @@ def load_images(w1_path, w2_path):
 
 def load_image_paths():
     image_names_file = open("imgs.txt", "r")
-    return image_names_file.read().split("\n")
+    return [x for x in image_names_file.read().split("\n") if not x.lstrip().startswith("#")]
 
 
 def cycle_images():

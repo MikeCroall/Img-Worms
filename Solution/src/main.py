@@ -20,10 +20,14 @@ def load_images(w1_path, w2_path):
     global working_image_w1, original_image_w1
     global working_image_w2, original_image_w2
 
-    working_image_w1 = cv2.imread(w1_path, 0)  # 0 for gray scale
+    # 0 for gray scale (8 bit)
+    working_image_w1 = cv2.imread(w1_path, 0)
     original_image_w1 = working_image_w1.copy()
 
-    working_image_w2 = cv2.imread(w2_path, 0)  # 0 for gray scale
+    # -1 for importing as is (16bit), right shift it then make 8bit to extract more information than importing as 8bit
+    img16 = cv2.imread(w2_path, -1)
+    img16b = np.right_shift(img16, 4)
+    working_image_w2 = np.array(img16b, dtype=np.uint8)
     original_image_w2 = working_image_w2.copy()
     return
 

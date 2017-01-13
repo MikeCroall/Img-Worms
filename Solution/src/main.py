@@ -149,33 +149,49 @@ def process_image(img, is_w1=True):
     # create binary image, where worms are white, background is black (w2 keeps border, which should be removed)
     img_bin = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 11, 2)
 
-    # contouring modifies image, use a copy
-    contourable_img = img_bin.copy()  # todo use or remove this comment cv2.GaussianBlur(img_bin, (5, 5), 0).copy()
-    # find contours, if w2: largest contour is border to remove
-    returned_image, contours, hierarchy = cv2.findContours(contourable_img, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+    # w2 needs further border removal
     if not is_w1:
-        # create array of tuples (size, contour), and find contour where size is largest
-        contour_sizes = [(cv2.contourArea(contour), contour) for contour in contours]
-        biggest_contour = max(contour_sizes, key=lambda x: x[0])[1]
-        # create an image to be subtracted from img_bin
-        border = np.zeros(img_bin.shape, np.uint8)
-        # draw known border
-        cv2.drawContours(border, [biggest_contour], -1, 255, 9)
-        # find rectangle that bounds border
-        x, y, w, h = cv2.boundingRect(biggest_contour)
-        #
-        # NOTE were the two rectangle methods below actually rounded rectangles (not included in OpenCV),
-        # the border corners would NOT get left behind. As OpenCV does not have rounded rectangle drawing
-        # functionality, my border removal is limited.
-        #
-        # draw over border area in white
-        cv2.rectangle(border, (x+5, y+5), (x + w - 5, y + h - 5), 255, -1)
-        # draw over center area to stop attached worms from being removed (will leave border corners)
-        cv2.rectangle(border, (x+10, y+10), (x + w - 10, y + h - 10), 0, -1)
-        # todo all smaller than a worm, draw also onto border to get subtracted
-        img_bin -= border
-        # cv2.namedWindow("temp", cv2.WINDOW_AUTOSIZE) # todo remove this and ...im.show("temp"...
-        # cv2.imshow("temp", border)
+        to_fill = img.copy()
+        # fill white from origin
+        cv2.floodFill(to_fill, None, (0, 0), 255)
+        # make non-white all black
+        to_fill[to_fill < 255] = 0
+        # dilate to grow it over the border
+        dilated_flood_fill = cv2.dilate(to_fill, np.ones((5, 5), np.uint8), iterations=2)
+        # subtract from original image
+        img_bin -= dilated_flood_fill
+
+    # # contouring modifies image, use a copy
+    # contourable_img = img_bin.copy()  # todo use or remove this comment cv2.GaussianBlur(img_bin, (5, 5), 0).copy()
+    # # find contours, if w2: largest contour is border to remove
+    # returned_image, contours, hierarchy = cv2.findContours(contourable_img, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+    # if not is_w1:
+    #     # create array of tuples (size, contour), and find contour where size is largest
+    #     contour_sizes = [(cv2.contourArea(contour), contour) for contour in contours]
+    #     biggest_contour = max(contour_sizes, key=lambda x: x[0])[1]
+    #     # create an image to be subtracted from img_bin
+    #     border = np.zeros(img_bin.shape, np.uint8)
+    #     # draw known border
+    #     cv2.drawContours(border, [biggest_contour], -1, 255, 9)
+    #     # find rectangle that bounds border
+    #     x, y, w, h = cv2.boundingRect(biggest_contour)
+    #
+    #     # NOTE were the two rectangle methods below actually rounded rectangles (not included in OpenCV),
+    #     # the border corners would NOT get left behind. As OpenCV does not have rounded rectangle drawing
+    #     # functionality, my border removal is limited.
+    #
+    #     # draw over border area in white
+    #     cv2.rectangle(border, (x + 5, y + 5), (x + w - 5, y + h - 5), 255, -1)
+    #     # draw over center area to stop attached worms from being removed (will leave border corners)
+    #     cv2.rectangle(border, (x + 10, y + 10), (x + w - 10, y + h - 10), 0, -1)
+    #
+    #     # todo MAYBE all smaller than a worm, draw also onto border to get subtracted
+    #     # smaller_than_worms = [cs[1] for cs in contour_sizes if cs[0] < 1]
+    #     # cv2.drawContours(border, smaller_than_worms, -1, 255, 9)
+    #
+    #     img_bin -= border
+    #     # cv2.namedWindow("temp", cv2.WINDOW_AUTOSIZE) # todo remove this and ...im.show("temp"...
+    #     # cv2.imshow("temp", border)
 
     # todo more tasks from the .docx
 

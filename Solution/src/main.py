@@ -145,8 +145,19 @@ def process_image(img, is_w1=True):
     # create binary image, where worms are white, background is black
     img_bin = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 11, 2)
 
-    # todo next, contour everything, and ignore any with area bigger than or smaller than the worms,
-    # todo       eliminating borders and noise hopefully
+    # contouring modifies image, use a copy
+    contourable_img = img_bin.copy()  # todo use or remove this comment cv2.GaussianBlur(img_bin, (5, 5), 0).copy()
+    # find contours, if w2: largest contour is border to remove
+    returned_image, contours, hierarchy = cv2.findContours(contourable_img, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+    if not is_w1:
+        contour_sizes = [(cv2.contourArea(contour), contour) for contour in contours]
+        biggest_contour = max(contour_sizes, key=lambda x: x[0])[1]
+        # todo all smaller than a worm, draw also onto border to get subtracted
+        border = np.zeros(img_bin.shape, np.uint8)
+        cv2.drawContours(border, [biggest_contour], -1, 255, 9)
+        img_bin -= border
+        # cv2.namedWindow("temp", cv2.WINDOW_AUTOSIZE)
+        # cv2.imshow("temp", border)
 
     # todo more tasks from the .docx
 
@@ -157,7 +168,7 @@ def process_image(img, is_w1=True):
 
 # prepare window to display results next to originals
 main_window_name = "n - next, b - previous, l - toggle labels, s - save current images, x - exit"
-cv2.namedWindow(main_window_name, cv2.WINDOW_NORMAL)
+cv2.namedWindow(main_window_name, cv2.WINDOW_AUTOSIZE)
 load_and_process_next_images()
 
 # until x pressed
@@ -171,10 +182,14 @@ while keep_processing:
         w_w1_labelled = working_image_w1.copy()
         w_w2_labelled = working_image_w2.copy()
         # place labels uniformly in the bottom left of each image
-        cv2.putText(o_w1_labelled, 'original w1', (10, 510), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 1, cv2.LINE_AA)
-        cv2.putText(o_w2_labelled, 'original w2', (10, 510), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 1, cv2.LINE_AA)
-        cv2.putText(w_w1_labelled, 'processed w1', (10, 510), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 1, cv2.LINE_AA)
-        cv2.putText(w_w2_labelled, 'processed w2', (10, 510), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 1, cv2.LINE_AA)
+        cv2.putText(o_w1_labelled, 'original w1', (10, 510), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 1,
+                    cv2.LINE_AA)
+        cv2.putText(o_w2_labelled, 'original w2', (10, 510), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 1,
+                    cv2.LINE_AA)
+        cv2.putText(w_w1_labelled, 'processed w1', (10, 510), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 1,
+                    cv2.LINE_AA)
+        cv2.putText(w_w2_labelled, 'processed w2', (10, 510), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 1,
+                    cv2.LINE_AA)
         # combine images for same-window viewing
         both_w1 = np.hstack((o_w1_labelled, w_w1_labelled))
         both_w2 = np.hstack((o_w2_labelled, w_w2_labelled))

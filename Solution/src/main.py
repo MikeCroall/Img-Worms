@@ -40,7 +40,7 @@ current_index = -1
 current_w1_path = ""
 current_w2_path = ""
 
-save_when_processed = False
+save_when_processed = True
 keep_processing = True
 label_images = True
 

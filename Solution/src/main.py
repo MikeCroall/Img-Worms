@@ -47,13 +47,12 @@ label_images = True
 
 def load_images(w1_path, w2_path):
     """
-        Take two file paths and load the image files that the paths point at into global variables
-        working_image_w1, working_image_w2 for manipulation, also saving a copy of each original
-        in global variables original_image_w1, original_image_w2.
+    Take two file paths and load the image files that the paths point at into global variables
+    working_image_w1, working_image_w2 for manipulation, also saving a copy of each original
+    in global variables original_image_w1, original_image_w2.
 
-        Keyword arguments:
-        w1_path -- the file path to the w1 version of a file
-        w2_path -- the file path to the w2 version of a file
+    :param w1_path: The file path to the w1 version of a file
+    :param w2_path: he file path to the w2 version of a file
     """
     global working_image_w1, original_image_w1
     global working_image_w2, original_image_w2
@@ -80,8 +79,8 @@ def load_images(w1_path, w2_path):
 
 def cycle_images():
     """
-        Finds the next two image filenames to be loaded, constructs the relative file path to them,
-        and sends these to load_images(...). Also prints current FileID for reference.
+    Finds the next two image filenames to be loaded, constructs the relative file path to them,
+    and sends these to load_images(...). Also prints current FileID for reference.
     """
     # Not ALL images have a w1 AND a w2 version - D24 for example has no w2, and so is EXCLUDED from imgs.txt
     global current_index, current_w1_path, current_w2_path, original_file_name
@@ -104,12 +103,11 @@ def cycle_images():
 
 def save_images(w1, w2):
     """
-        Take two image objects, and save them to file in the folder pointed at by
-        relative_image_output_folder_path.
+    Take two image objects, and save them to file in the folder pointed at by
+    relative_image_output_folder_path.
 
-        Keyword arguments:
-        w1 -- image object to be saved to file as fileid_w1.jpg
-        w2 -- image object to be saved to file as fileid_w2.jpg
+    :param w1: Image object to be saved to file as fileid_w1.jpg
+    :param w2: Image object to be saved to file as fileid_w2.jpg
     """
     global original_file_name
     # isolate the fileID, keeping the _ after it
@@ -117,12 +115,12 @@ def save_images(w1, w2):
     cv2.imwrite(relative_image_output_folder_path + file_id + "w1.jpg", w1)
     cv2.imwrite(relative_image_output_folder_path + file_id + "w2.jpg", w2)
     print("Saved {0}w1.jpg and {0}w2.jpg".format(file_id))
-    pass
+    return
 
 
 def load_and_process_next_images():
     """
-        Cycles to the next pair of images, processes them, and handles saving once processed if variable set
+    Cycles to the next pair of images, processes them, and handles saving once processed if variable set
     """
     global working_image_w1, working_image_w2
     cycle_images()
@@ -133,13 +131,13 @@ def load_and_process_next_images():
     return
 
 
-def process_image(img, is_w1=True):
+def step_1_isolate_worms(img, is_w1=True):
     """
-        Takes an image, knowing if w1 or w2, and processes it according to the tasks given
+    Takes an image, knowing if w1 or w2, and isolates the worms from the background as best as possible
 
-        Keyword arguments:
-        img -- image object to process
-        is_w1 -- should be True if img is w1 version, False otherwise
+    :param img: Image object to process
+    :param is_w1: Should be True if img is w1 version, False otherwise
+    :return: Processed Image object with worms as isolated as possible
     """
     # w2 can cause border problems, setting the outside area to similar to the border colour
     # begins to alleviate this issue
@@ -162,6 +160,20 @@ def process_image(img, is_w1=True):
         img_bin -= dilated_flood_fill
         # remove extra noise
         img_bin = cv2.medianBlur(img_bin, 5)
+
+    return img_bin
+
+
+def process_image(img, is_w1=True):
+    """
+    Takes an image, knowing if w1 or w2, and processes it according to the tasks given
+
+    :param img: Image object to process
+    :param is_w1: Should be True if img is w1 version, False otherwise
+    :return: Fully processed Image object
+    """
+
+    img = step_1_isolate_worms(img, is_w1)
 
     # # contouring modifies image, use a copy
     # contourable_img = img_bin.copy()  # todo use or remove this comment cv2.GaussianBlur(img_bin, (5, 5), 0).copy()
@@ -199,7 +211,7 @@ def process_image(img, is_w1=True):
 
     # maybe useful:
     # http://docs.opencv.org/trunk/d3/db4/tutorial_py_watershed.html
-    return img_bin
+    return img
 
 
 # prepare window to display results next to originals

@@ -40,7 +40,7 @@ current_index = -1
 current_w1_path = ""
 current_w2_path = ""
 
-save_when_processed = True
+save_when_processed = False
 keep_processing = True
 label_images = True
 
@@ -156,10 +156,12 @@ def process_image(img, is_w1=True):
         cv2.floodFill(to_fill, None, (0, 0), 255)
         # make non-white all black
         to_fill[to_fill < 255] = 0
-        # dilate to grow it over the border
+        # dilate white area to grow it over the border
         dilated_flood_fill = cv2.dilate(to_fill, np.ones((5, 5), np.uint8), iterations=2)
         # subtract from original image
         img_bin -= dilated_flood_fill
+        # remove extra noise
+        img_bin = cv2.medianBlur(img_bin, 5)
 
     # # contouring modifies image, use a copy
     # contourable_img = img_bin.copy()  # todo use or remove this comment cv2.GaussianBlur(img_bin, (5, 5), 0).copy()

@@ -201,9 +201,9 @@ def step_2_watershed(img, is_w1=True):
     markers[unknown == 255] = 0
     img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
     markers = cv2.watershed(img, markers)
-    img[markers == -1] = [255, 0, 0]
+    img[markers == -1] = [0, 0, 255]
 
-    return img
+    return img, markers
 
 
 def process_image(img, is_w1=True):
@@ -215,10 +215,16 @@ def process_image(img, is_w1=True):
     :return: Fully processed Image object
     """
     # image is grayscale
+
     img_1 = step_1_isolate_worms(img, is_w1)
     # images still grayscale
-    img_2 = step_2_watershed(img_1, is_w1)
+
+    img_2, watershed_markers = step_2_watershed(img_1, is_w1)
     # now images are coloured
+
+    # todo isolate each colour from watershed_markers
+    # cv2.namedWindow("temp")
+    # cv2.imshow("temp", watershed_markers)
 
     # # contouring modifies image, use a copy
     # contourable_img = img_bin.copy()  # todo use or remove this comment cv2.GaussianBlur(img_bin, (5, 5), 0).copy()

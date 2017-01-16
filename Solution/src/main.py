@@ -167,9 +167,36 @@ def step_1_isolate_worms(img, is_w1=True):
     # NOTE this can remove parts of worms that weren't processed possibly,
     #       though these can often be found in the w1 version of the same image
     if not is_w1:
-        img_bin = cv2.morphologyEx(img_bin, cv2.MORPH_OPEN, np.ones((3,3), np.uint8), iterations=2)
+        img_bin = cv2.morphologyEx(img_bin, cv2.MORPH_OPEN, np.ones((3, 3), np.uint8), iterations=2)
 
     return img_bin
+
+
+def step_2_watershed(img, is_w1=True):
+    """
+    Takes an image, knowing if w1 or w2, and uses the watershed algorithm to mark the worms
+
+    :param img: Image object to process
+    :param is_w1: Should be True if img is w1 version, False otherwise
+    :return: Processed Image object with worms marked where possible
+    """
+    # find what is definitely background
+    definite_background = cv2.dilate(img, np.ones((3, 3), np.uint8), iterations=3)
+    # find what is definitely foreground
+    dist_transform = cv2.distanceTransform(img, cv2.DIST_L2, 5)
+    ret, definite_foreground = cv2.threshold(dist_transform, 0.7 * dist_transform.max(), 255, 0)
+    definite_foreground = np.uint8(definite_foreground)
+    definite_background = np.uint8(definite_background)
+    # calculate what is then unknown
+    unknown = cv2.subtract(definite_background, definite_foreground)
+
+    ret, markers = cv2.connectedComponents(definite_foreground)
+    markers += 1
+    markers[unknown == 255] = 0
+    markers = cv2.watershed(img, markers)
+    img[markers == -1] = 127
+
+    return img
 
 
 def process_image(img, is_w1=True):
@@ -181,7 +208,8 @@ def process_image(img, is_w1=True):
     :return: Fully processed Image object
     """
 
-    img = step_1_isolate_worms(img, is_w1)
+    img_1 = step_1_isolate_worms(img, is_w1)
+    img_2 = step_2_watershed(img_1, is_w1)
 
     # # contouring modifies image, use a copy
     # contourable_img = img_bin.copy()  # todo use or remove this comment cv2.GaussianBlur(img_bin, (5, 5), 0).copy()
@@ -219,7 +247,7 @@ def process_image(img, is_w1=True):
 
     # maybe useful:
     # http://docs.opencv.org/trunk/d3/db4/tutorial_py_watershed.html
-    return img
+    return img_2
 
 
 # prepare window to display results next to originals

@@ -30,7 +30,7 @@ original_image_w1, working_image_w1 = None, None
 original_image_w2, working_image_w2 = None, None
 relative_image_folder_path = "../../BBBC010_v1_images/"
 relative_image_output_folder_path = "../../img_out/"
-original_file_name = ""
+file_id = ""
 
 with open("imgs.txt", "r") as image_names_file:
     # ignore comments (lines beginning with # )
@@ -83,7 +83,7 @@ def cycle_images():
     and sends these to load_images(...). Also prints current FileID for reference.
     """
     # Not ALL images have a w1 AND a w2 version - D24 for example has no w2, and so is EXCLUDED from imgs.txt
-    global current_index, current_w1_path, current_w2_path, original_file_name
+    global current_index, current_w1_path, current_w2_path, file_id
     # progress one image, looping if needed
     current_index = (current_index + 1) % len(image_names)
     # save path to this image as w1
@@ -93,9 +93,9 @@ def cycle_images():
     # save path to this image as w2
     current_w2_path = relative_image_folder_path + image_names[current_index]
     # save original_file_name for fileID isolation later # todo save just fileID?
-    original_file_name = str(image_names[current_index])
+    file_id = str(image_names[current_index])[33:36]
 
-    print("Loading images marked {}".format(original_file_name[33:36]))
+    print("Loading images marked {}".format(file_id))
     # actually load the images from the found paths
     load_images(current_w1_path, current_w2_path)
     return
@@ -109,12 +109,10 @@ def save_images(w1, w2):
     :param w1: Image object to be saved to file as fileid_w1.jpg
     :param w2: Image object to be saved to file as fileid_w2.jpg
     """
-    global original_file_name
-    # isolate the fileID, keeping the _ after it
-    file_id = original_file_name[-47:-43]
-    cv2.imwrite(relative_image_output_folder_path + file_id + "w1.jpg", w1)
-    cv2.imwrite(relative_image_output_folder_path + file_id + "w2.jpg", w2)
-    print("Saved {0}w1.jpg and {0}w2.jpg".format(file_id))
+    global file_id
+    cv2.imwrite(relative_image_output_folder_path + file_id + "_w1.jpg", w1)
+    cv2.imwrite(relative_image_output_folder_path + file_id + "_w2.jpg", w2)
+    print("Saved {0}_w1.jpg and {0}_w2.jpg".format(file_id))
     return
 
 

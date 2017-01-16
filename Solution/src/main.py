@@ -161,6 +161,16 @@ def step_1_isolate_worms(img, is_w1=True):
         # remove extra noise
         img_bin = cv2.medianBlur(img_bin, 5)
 
+    # fill in empty spots within worms
+    morph_close_iterations = 3 if is_w1 else 2
+    img_bin = cv2.morphologyEx(img_bin, cv2.MORPH_CLOSE, np.ones((3, 3), np.uint8), iterations=morph_close_iterations)
+
+    # remove big blotches that aren't full worms
+    # NOTE this can remove parts of worms that weren't processed possibly,
+    #       though these can often be found in the w1 version of the same image
+    if not is_w1:
+        img_bin = cv2.morphologyEx(img_bin, cv2.MORPH_OPEN, np.ones((3,3), np.uint8), iterations=2)
+
     return img_bin
 
 

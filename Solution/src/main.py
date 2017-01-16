@@ -74,6 +74,11 @@ def load_images(w1_path, w2_path):
     working_image_w2 = np.array(w2img16b, dtype=np.uint8)
     # save copy for comparing original with processed
     original_image_w2 = working_image_w2.copy()
+
+    # convert to colour for displaying with coloured processed images
+    original_image_w1 = cv2.cvtColor(original_image_w1, cv2.COLOR_GRAY2BGR)
+    original_image_w2 = cv2.cvtColor(original_image_w2, cv2.COLOR_GRAY2BGR)
+
     return
 
 
@@ -180,6 +185,7 @@ def step_2_watershed(img, is_w1=True):
     :param is_w1: Should be True if img is w1 version, False otherwise
     :return: Processed Image object with worms marked where possible
     """
+    ret, img = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY+cv2.THRESH_OTSU)
     # find what is definitely background
     definite_background = cv2.dilate(img, np.ones((3, 3), np.uint8), iterations=3)
     # find what is definitely foreground
@@ -193,8 +199,9 @@ def step_2_watershed(img, is_w1=True):
     ret, markers = cv2.connectedComponents(definite_foreground)
     markers += 1
     markers[unknown == 255] = 0
+    img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
     markers = cv2.watershed(img, markers)
-    img[markers == -1] = 127
+    img[markers == -1] = [255, 0, 0]
 
     return img
 
@@ -207,9 +214,11 @@ def process_image(img, is_w1=True):
     :param is_w1: Should be True if img is w1 version, False otherwise
     :return: Fully processed Image object
     """
-
+    # image is grayscale
     img_1 = step_1_isolate_worms(img, is_w1)
+    # images still grayscale
     img_2 = step_2_watershed(img_1, is_w1)
+    # now images are coloured
 
     # # contouring modifies image, use a copy
     # contourable_img = img_bin.copy()  # todo use or remove this comment cv2.GaussianBlur(img_bin, (5, 5), 0).copy()

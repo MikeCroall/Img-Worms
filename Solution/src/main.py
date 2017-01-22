@@ -303,6 +303,33 @@ def step_2b_save_individual_worms(watershed_markers, is_w1):
     return
 
 
+def step_3_find_dead_or_alive(img):
+    # todo find contours and their shapes for alive/dead classification, fill in green for alive, red for dead
+    # # contouring modifies image, use a copy
+    # contourable_img = img_bin.copy()
+    # # find contours, if w2: largest contour is border to remove
+    # returned_image, contours, hierarchy = cv2.findContours(contourable_img, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+    # if not is_w1:
+    #     # create array of tuples (size, contour), and find contour where size is largest
+    #     contour_sizes = [(cv2.contourArea(contour), contour) for contour in contours]
+    #     biggest_contour = max(contour_sizes, key=lambda x: x[0])[1]
+    #     # create an image to be subtracted from img_bin
+    #     border = np.zeros(img_bin.shape, np.uint8)
+    #     # draw known border
+    #     cv2.drawContours(border, [biggest_contour], -1, 255, 9)
+    #     # find rectangle that bounds border
+    #     x, y, w, h = cv2.boundingRect(biggest_contour)
+    #
+    #     # NOTE were the two rectangle methods below actually rounded rectangles (not included in OpenCV),
+    #     # the border corners would NOT get left behind. As OpenCV does not have rounded rectangle drawing
+    #     # functionality, my border removal is limited.
+    #
+    #     # todo ignore all smaller than a worm MAYBE
+    #     # smaller_than_worms = [cs[1] for cs in contour_sizes if cs[0] < 1]
+    #     # cv2.drawContours(border, smaller_than_worms, -1, 255, 9)
+    return img
+
+
 def process_image(img, is_w1=True):
     """
     Takes an image, knowing if w1 or w2, and processes it according to the tasks given
@@ -324,36 +351,11 @@ def process_image(img, is_w1=True):
     # Use watershed_markers to save individual worms
     step_2b_save_individual_worms(watershed_markers, is_w1)
 
-    #
-    # todo find contours and their shapes for alive/dead classification
-    # # contouring modifies image, use a copy
-    # contourable_img = img_bin.copy()
-    # # find contours, if w2: largest contour is border to remove
-    # returned_image, contours, hierarchy = cv2.findContours(contourable_img, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-    # if not is_w1:
-    #     # create array of tuples (size, contour), and find contour where size is largest
-    #     contour_sizes = [(cv2.contourArea(contour), contour) for contour in contours]
-    #     biggest_contour = max(contour_sizes, key=lambda x: x[0])[1]
-    #     # create an image to be subtracted from img_bin
-    #     border = np.zeros(img_bin.shape, np.uint8)
-    #     # draw known border
-    #     cv2.drawContours(border, [biggest_contour], -1, 255, 9)
-    #     # find rectangle that bounds border
-    #     x, y, w, h = cv2.boundingRect(biggest_contour)
-    #
-    #     # NOTE were the two rectangle methods below actually rounded rectangles (not included in OpenCV),
-    #     # the border corners would NOT get left behind. As OpenCV does not have rounded rectangle drawing
-    #     # functionality, my border removal is limited.
-    #
-    #     # todo MAYBE all smaller than a worm
-    #     # smaller_than_worms = [cs[1] for cs in contour_sizes if cs[0] < 1]
-    #     # cv2.drawContours(border, smaller_than_worms, -1, 255, 9)
+    # Find contours and determine shape for dead/alive classification
+    img_3 = step_3_find_dead_or_alive(img_2)
 
-    # todo more tasks from the .docx
-
-    # maybe useful:
-    # http://docs.opencv.org/trunk/d3/db4/tutorial_py_watershed.html
-    return img_2
+    # todo MAYBE better overlap/cluster detection things
+    return img_3
 
 
 # prepare window to display results next to originals

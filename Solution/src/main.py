@@ -29,6 +29,7 @@ import cv2
 original_image_w1, working_image_w1 = None, None
 original_image_w2, working_image_w2 = None, None
 relative_image_folder_path = "../../BBBC010_v1_images/"
+relative_image_ground_truth_folder_path = "../../BBBC010_v1_foreground/"
 relative_image_output_folder_path = "../../img_out/"
 file_id = ""
 
@@ -177,6 +178,52 @@ def step_1_isolate_worms(img, is_w1=True):
     return img_bin
 
 
+def calculate_percentage_similarity(img_a, img_b):
+    """
+    Calculates the percentage of pixels identical between two images
+
+    :param img_a: The first image to compare
+    :param img_b: The second image to compare
+    :return: The percentage of pixels identical between img_a and img_b
+    """
+    # ensure both images are still binary to avoid differences by 1 pixel causing ~0% similarity
+    img_a_2 = cv2.adaptiveThreshold(img_a, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 11, 2)
+    img_b_2 = cv2.adaptiveThreshold(img_b, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 11, 2)
+
+    # find difference
+    difference = img_b_2 - img_a_2
+
+    # count white (actually counting non-black) pixels in difference
+    white = cv2.countNonZero(difference)
+    # count total pixels in difference
+    total = difference.shape[0] * difference.shape[1]
+    # calculate percentage black pixels (black means identical between img_a and img_b)
+    return 100 * ((total - white) / total)
+
+
+def step_1b_compare_to_ground_truth(img_1, is_w1):
+    """
+    Takes an image, loads the corresponding ground truth, finds percentage similarity
+
+    :param img_1: Image to compare against the ground truth image
+    :param is_w1: Should be True if img_1 is w1 version, False otherwise
+    """
+    global file_id, relative_image_ground_truth_folder_path
+    # load ground truth from disk
+    ground_truth = cv2.imread(relative_image_ground_truth_folder_path + file_id + "_binary.png", -1)
+    # convert ground truth to be single channel, to match img_1
+    ground_truth = cv2.cvtColor(ground_truth, cv2.COLOR_BGR2GRAY)
+
+    if ground_truth is not None and ground_truth.shape == img_1.shape:
+        percentage_similarity = calculate_percentage_similarity(img_1, ground_truth)
+        print("\t{} {} matches ground similarity {:.2f}%".format(file_id, "w1" if is_w1 else "w2", percentage_similarity))
+    else:
+        print("\tGround truth image for {} could not be loaded for comparison," +
+              "or does not match shape of img_1".format(file_id))
+
+    return
+
+
 def step_2_watershed(img, is_w1=True):
     """
     Takes an image, knowing if w1 or w2, and uses the watershed algorithm to mark the worms
@@ -185,25 +232,50 @@ def step_2_watershed(img, is_w1=True):
     :param is_w1: Should be True if img is w1 version, False otherwise
     :return: Processed Image object with worms marked where possible
     """
-    ret, img = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+    ret, img = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+
     # find what is definitely background
     definite_background = cv2.dilate(img, np.ones((3, 3), np.uint8), iterations=3)
+
     # find what is definitely foreground
     dist_transform = cv2.distanceTransform(img, cv2.DIST_L2, 5)
-    ret, definite_foreground = cv2.threshold(dist_transform, 0.7 * dist_transform.max(), 255, 0)
+
+    ret, definite_foreground = cv2.threshold(dist_transform, 0.2 * dist_transform.max(), 255, 0)
+
+    # convert foreground and background to 8bit
     definite_foreground = np.uint8(definite_foreground)
     definite_background = np.uint8(definite_background)
+
     # calculate what is then unknown
     unknown = cv2.subtract(definite_background, definite_foreground)
 
     ret, markers = cv2.connectedComponents(definite_foreground)
+
     markers += 1
+    markers *= 20
     markers[unknown == 255] = 0
+
     img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
     markers = cv2.watershed(img, markers)
     img[markers == -1] = [0, 0, 255]
 
+    markers = np.uint8(markers)
+
     return img, markers
+
+
+def step_2b_save_individual_worms(watershed_markers):
+    """
+    Takes a marker image from the watershed process, and saves each worm in it's own file
+
+    :param watershed_markers: The marker image from the watershed process
+    """
+    # todo implement method
+    # todo remove below imshow/namedWindow
+    # cv2.namedWindow("watershed markers {}".format("w1" if is_w1 else "w2"))
+    # cv2.imshow("watershed markers {}".format("w1" if is_w1 else "w2"), watershed_markers)
+
+    return
 
 
 def process_image(img, is_w1=True):
@@ -214,20 +286,23 @@ def process_image(img, is_w1=True):
     :param is_w1: Should be True if img is w1 version, False otherwise
     :return: Fully processed Image object
     """
-    # image is grayscale
-
+    # Isolate the worms from the background/border
     img_1 = step_1_isolate_worms(img, is_w1)
-    # images still grayscale
 
+    # Calculate percentage similarity to provided ground truth
+    step_1b_compare_to_ground_truth(img_1, is_w1)
+
+    # Isolate individual worms in separate colours (watershed_markers is grey scale,
+    #                                               img_2 is coloured with worms outlined)
     img_2, watershed_markers = step_2_watershed(img_1, is_w1)
-    # now images are coloured
 
-    # todo isolate each colour from watershed_markers
-    # cv2.namedWindow("temp")
-    # cv2.imshow("temp", watershed_markers)
+    # Use watershed_markers to save individual worms
+    step_2b_save_individual_worms(watershed_markers)
 
+    #
+    # todo find contours and their shapes for alive/dead classification
     # # contouring modifies image, use a copy
-    # contourable_img = img_bin.copy()  # todo use or remove this comment cv2.GaussianBlur(img_bin, (5, 5), 0).copy()
+    # contourable_img = img_bin.copy()
     # # find contours, if w2: largest contour is border to remove
     # returned_image, contours, hierarchy = cv2.findContours(contourable_img, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
     # if not is_w1:
@@ -245,18 +320,9 @@ def process_image(img, is_w1=True):
     #     # the border corners would NOT get left behind. As OpenCV does not have rounded rectangle drawing
     #     # functionality, my border removal is limited.
     #
-    #     # draw over border area in white
-    #     cv2.rectangle(border, (x + 5, y + 5), (x + w - 5, y + h - 5), 255, -1)
-    #     # draw over center area to stop attached worms from being removed (will leave border corners)
-    #     cv2.rectangle(border, (x + 10, y + 10), (x + w - 10, y + h - 10), 0, -1)
-    #
-    #     # todo MAYBE all smaller than a worm, draw also onto border to get subtracted
+    #     # todo MAYBE all smaller than a worm
     #     # smaller_than_worms = [cs[1] for cs in contour_sizes if cs[0] < 1]
     #     # cv2.drawContours(border, smaller_than_worms, -1, 255, 9)
-    #
-    #     img_bin -= border
-    #     # cv2.namedWindow("temp", cv2.WINDOW_AUTOSIZE) # todo remove this and ...im.show("temp"...
-    #     # cv2.imshow("temp", border)
 
     # todo more tasks from the .docx
 

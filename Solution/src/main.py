@@ -7,7 +7,7 @@ To run this script, the provided imgs.txt must be in the same directory, and the
     point to by the variable relative_image_folder_path (currently BBBC010_v1_images/, two directories above)
     and the variable relative_image_output_folder_path (currently img_out/, two directories above)
     must be placed correctly relative to the script, or the relative paths adjusted to match their locations.
-    As supplied, they will be in the correct places.
+    As supplied, they will be in the correct places. The same goes for other relative_image_... folder locations.
 
 imgs.txt is the list of filenames that can be found in the folder BBBC010_v1_images/, except with D24 removed.
     This is because D24 only had a w1 version, and not a w2 version. This is also stated at the top of imgs.txt
@@ -41,7 +41,8 @@ current_index = -1
 current_w1_path = ""
 current_w2_path = ""
 
-save_when_processed = False
+save_when_processed = True
+save_individual_worms = True
 keep_processing = True
 label_images = True
 
@@ -196,7 +197,7 @@ def calculate_percentage_similarity(img_a, img_b):
     # count white (actually counting non-black) pixels in difference
     white = cv2.countNonZero(difference)
     # count total pixels in difference
-    total = difference.shape[0] * difference.shape[1]
+    total = difference.size  # originally was: total = difference.shape[0] * difference.shape[1]
     # calculate percentage black pixels (black means identical between img_a and img_b)
     return 100 * ((total - white) / total)
 
@@ -224,7 +225,7 @@ def step_1b_compare_to_ground_truth(img_1, is_w1):
     return
 
 
-def step_2_watershed(img, is_w1=True):
+def step_2_watershed(img):
     """
     Takes an image, knowing if w1 or w2, and uses the watershed algorithm to mark the worms
 
@@ -264,17 +265,36 @@ def step_2_watershed(img, is_w1=True):
     return img, markers
 
 
-def step_2b_save_individual_worms(watershed_markers):
+def step_2b_save_individual_worms(watershed_markers, is_w1):
     """
     Takes a marker image from the watershed process, and saves each worm in it's own file
 
     :param watershed_markers: The marker image from the watershed process
+    :param is_w1: Should be True if img is w1 version, False otherwise
     """
-    # todo implement method
-    # todo remove below imshow/namedWindow
-    # cv2.namedWindow("watershed markers {}".format("w1" if is_w1 else "w2"))
-    # cv2.imshow("watershed markers {}".format("w1" if is_w1 else "w2"), watershed_markers)
+    global file_id, relative_image_output_folder_path, save_individual_worms
+    border_colour = watershed_markers[0, 0]
+    background_colour = watershed_markers[5, 5]
+    colours_to_save = []
 
+    for x in range(watershed_markers.shape[0]):
+        for y in range(watershed_markers.shape[1]):
+            pixel_colour = watershed_markers[x, y]
+            if pixel_colour != background_colour and pixel_colour != border_colour:
+                if pixel_colour not in colours_to_save:
+                        colours_to_save.append(pixel_colour)
+
+    print("{} worms identified in {} {}".format(len(colours_to_save), file_id, "w1" if is_w1 else "w2"))
+
+    if save_individual_worms:
+        counter = 1
+        for colour in colours_to_save:
+            img_to_save = watershed_markers.copy()
+            img_to_save[watershed_markers == colour] = 255
+            img_to_save[watershed_markers != colour] = 0
+            cv2.imwrite(relative_image_output_folder_path + "separated/{}_{}.jpg".format(file_id, str(counter)), img_to_save)
+            print("saved {} {}".format(file_id, counter))
+            counter += 1
     return
 
 
@@ -294,10 +314,10 @@ def process_image(img, is_w1=True):
 
     # Isolate individual worms in separate colours (watershed_markers is grey scale,
     #                                               img_2 is coloured with worms outlined)
-    img_2, watershed_markers = step_2_watershed(img_1, is_w1)
+    img_2, watershed_markers = step_2_watershed(img_1)
 
     # Use watershed_markers to save individual worms
-    step_2b_save_individual_worms(watershed_markers)
+    step_2b_save_individual_worms(watershed_markers, is_w1)
 
     #
     # todo find contours and their shapes for alive/dead classification
@@ -335,6 +355,8 @@ def process_image(img, is_w1=True):
 main_window_name = "n - next, b - previous, l - toggle labels, s - save current images, x - exit"
 cv2.namedWindow(main_window_name, cv2.WINDOW_AUTOSIZE)
 load_and_process_next_images()
+
+# todo print info about key commands, save folders, load folders, etc etc
 
 # until x pressed
 while keep_processing:

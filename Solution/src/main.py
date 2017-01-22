@@ -41,10 +41,12 @@ current_index = -1
 current_w1_path = ""
 current_w2_path = ""
 
-save_when_processed = True
-save_individual_worms = True
+save_when_processed = False
+save_individual_worms = False
 keep_processing = True
 label_images = True
+
+auto_advance = False
 
 
 def load_images(w1_path, w2_path):
@@ -99,10 +101,10 @@ def cycle_images():
     current_index = (current_index + 1) % len(image_names)
     # save path to this image as w2
     current_w2_path = relative_image_folder_path + image_names[current_index]
-    # save original_file_name for fileID isolation later # todo save just fileID?
+    # save file_id for saving related files later
     file_id = str(image_names[current_index])[33:36]
 
-    print("Loading images marked {}".format(file_id))
+    print("\nLoading images marked {}".format(file_id))
     # actually load the images from the found paths
     load_images(current_w1_path, current_w2_path)
     return
@@ -217,7 +219,8 @@ def step_1b_compare_to_ground_truth(img_1, is_w1):
 
     if ground_truth is not None and ground_truth.shape == img_1.shape:
         percentage_similarity = calculate_percentage_similarity(img_1, ground_truth)
-        print("\t{} {} matches ground similarity {:.2f}%".format(file_id, "w1" if is_w1 else "w2", percentage_similarity))
+        print("\t{} {} - matches ground similarity {:.2f}%".format(file_id, "w1" if is_w1 else "w2",
+                                                                   percentage_similarity))
     else:
         print("\tGround truth image for {} could not be loaded for comparison," +
               "or does not match shape of img_1".format(file_id))
@@ -282,18 +285,20 @@ def step_2b_save_individual_worms(watershed_markers, is_w1):
             pixel_colour = watershed_markers[x, y]
             if pixel_colour != background_colour and pixel_colour != border_colour:
                 if pixel_colour not in colours_to_save:
-                        colours_to_save.append(pixel_colour)
+                    colours_to_save.append(pixel_colour)
 
-    print("{} worms identified in {} {}".format(len(colours_to_save), file_id, "w1" if is_w1 else "w2"))
+    print("\t{} {} - {} worms identified".format(file_id, "w1" if is_w1 else "w2", len(colours_to_save)))
 
     if save_individual_worms:
+        print("\t{} {} - Saving individual worms in img_out/separated/".format(file_id, "w1" if is_w1 else "w2"))
         counter = 1
         for colour in colours_to_save:
             img_to_save = watershed_markers.copy()
             img_to_save[watershed_markers == colour] = 255
             img_to_save[watershed_markers != colour] = 0
-            cv2.imwrite(relative_image_output_folder_path + "separated/{}_{}.jpg".format(file_id, str(counter)), img_to_save)
-            print("saved {} {}".format(file_id, counter))
+            cv2.imwrite(
+                relative_image_output_folder_path + "separated/{}_{}_{}.jpg".format(file_id, "w1" if is_w1 else "w2",
+                                                                                    str(counter)), img_to_save)
             counter += 1
     return
 
@@ -408,3 +413,6 @@ while keep_processing:
     elif key == ord('s'):
         # trigger save procedure
         save_images(working_image_w1, working_image_w2)
+    elif auto_advance:
+        # automatically load and process next images
+        load_and_process_next_images()

@@ -377,6 +377,7 @@ load_and_process_next_images()
 
 # todo print info about key commands, save folders, load folders, etc etc
 
+# todo go through all code and comment/docstring appropriately
 # until x pressed
 while keep_processing:
     both_w1, both_w2 = None, None

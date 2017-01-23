@@ -41,7 +41,7 @@ current_index = -1
 current_w1_path = ""
 current_w2_path = ""
 
-save_when_processed = False
+save_when_processed = True
 save_individual_worms = False
 keep_processing = True
 label_images = True
@@ -303,30 +303,42 @@ def step_2b_save_individual_worms(watershed_markers, is_w1):
     return
 
 
-def step_3_find_dead_or_alive(img):
-    # todo find contours and their shapes for alive/dead classification, fill in green for alive, red for dead
-    # # contouring modifies image, use a copy
-    # contourable_img = img_bin.copy()
-    # # find contours, if w2: largest contour is border to remove
-    # returned_image, contours, hierarchy = cv2.findContours(contourable_img, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-    # if not is_w1:
-    #     # create array of tuples (size, contour), and find contour where size is largest
-    #     contour_sizes = [(cv2.contourArea(contour), contour) for contour in contours]
-    #     biggest_contour = max(contour_sizes, key=lambda x: x[0])[1]
-    #     # create an image to be subtracted from img_bin
-    #     border = np.zeros(img_bin.shape, np.uint8)
-    #     # draw known border
-    #     cv2.drawContours(border, [biggest_contour], -1, 255, 9)
-    #     # find rectangle that bounds border
-    #     x, y, w, h = cv2.boundingRect(biggest_contour)
-    #
-    #     # NOTE were the two rectangle methods below actually rounded rectangles (not included in OpenCV),
-    #     # the border corners would NOT get left behind. As OpenCV does not have rounded rectangle drawing
-    #     # functionality, my border removal is limited.
-    #
-    #     # todo ignore all smaller than a worm MAYBE
-    #     # smaller_than_worms = [cs[1] for cs in contour_sizes if cs[0] < 1]
-    #     # cv2.drawContours(border, smaller_than_worms, -1, 255, 9)
+def step_3_classify_dead_or_alive(img):
+    """
+    Takes an image, colours in alive worms green, and dead worms red, returns coloured in image
+
+    :param img: Image object to identify and colour worms in
+    :return: Image object with worms coloured in depending on whether they are dead or alive
+    """
+    # contouring modifies image, use a copy
+    contourable_img = np.uint8(img.copy())
+    # convert coloured image to grey scale
+    contourable_img = cv2.cvtColor(contourable_img, cv2.COLOR_BGR2GRAY)
+    # find contours, if w2: largest contour is border to remove
+    returned_image, contours, hierarchy = cv2.findContours(contourable_img, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+
+    # assess each contour individually
+    for contour in contours:
+        # find smallest bounding rectangle of contour
+        rotated_rectangle = cv2.minAreaRect(contour)
+        # extract width and height from rotated rectangle
+        width, height = rotated_rectangle[1]
+        # ignore tiny pixel clusters
+        if width > 2 and height > 2:
+            # find ratio, ensuring >= 1
+            width_height_ratio = max(width, height) / min(width, height)
+            if width_height_ratio < 2.5:
+                # alive, fill green
+                cv2.drawContours(img, [contour], 0, (0, 255, 0), -1)
+            else:
+                # dead, fill red
+                cv2.drawContours(img, [contour], 0, (0, 0, 255), -1)
+
+            # draw bounding rotated rectangle around coloured in worm, in purple
+            box = cv2.boxPoints(rotated_rectangle)
+            box = np.int0(box)
+            cv2.drawContours(img, [box], 0, (255, 0, 255), 2)
+
     return img
 
 
@@ -351,10 +363,10 @@ def process_image(img, is_w1=True):
     # Use watershed_markers to save individual worms
     step_2b_save_individual_worms(watershed_markers, is_w1)
 
-    # Find contours and determine shape for dead/alive classification
-    img_3 = step_3_find_dead_or_alive(img_2)
+    # Find contours and determine shape for dead/alive classification (worms boxed with purple,
+    #                                                               alive are coloured green, dead are coloured red)
+    img_3 = step_3_classify_dead_or_alive(img_2)
 
-    # todo MAYBE better overlap/cluster detection things
     return img_3
 
 

@@ -1,7 +1,7 @@
 # Fdb version 3
-["pdflatex"] 1485260218 "tqvj24.tex" "/home/mike/Documents/comp-sci/year-2/sm/img/Assignment1/report/tqvj24.pdf" "tqvj24" 1485260219
+["pdflatex"] 1485260905 "tqvj24.tex" "/home/mike/Documents/comp-sci/year-2/sm/img/Assignment1/report/tqvj24.pdf" "tqvj24" 1485260906
   "/etc/texmf/web2c/texmf.cnf" 1480435489 475 c0e671620eb5563b2130f56340a5fde8 ""
-  "/home/mike/Documents/comp-sci/year-2/sm/img/Assignment1/report/tqvj24.aux" 1485260219 8 a94a2480d3289e625eea47cd1b285758 ""
+  "/home/mike/Documents/comp-sci/year-2/sm/img/Assignment1/report/tqvj24.aux" 1485260906 8 a94a2480d3289e625eea47cd1b285758 ""
   "/usr/share/texlive/texmf-dist/fonts/map/fontname/texfonts.map" 1272929888 3287 e6b82fe08f5336d4d5ebc73fb1152e87 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmbx12.tfm" 1136768653 1324 c910af8c371558dc20f2d7822f66fe64 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmr12.tfm" 1136768653 1288 655e228510b4c2a1abe905c368440826 ""
@@ -36,11 +36,11 @@
   "/usr/share/texmf/web2c/texmf.cnf" 1471618383 31348 3c11c993a1d7e4662292855f9f7c8e1b ""
   "/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map" 1480690417 1938010 a757a460f2fd82210c4d6c8c2cbaedc2 ""
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1480690457 3868520 e14f7a0dfc30e1c35722795e4e6e3b8a ""
-  "tqvj24.aux" 1485260219 8 a94a2480d3289e625eea47cd1b285758 ""
-  "tqvj24.tex" 1485260177 512 2bc7a298bdfeb18777b5a5406d9f57b1 ""
+  "tqvj24.aux" 1485260906 8 a94a2480d3289e625eea47cd1b285758 ""
+  "tqvj24.tex" 1485260905 853 f23695c8c17ce3ef6d9a8af5ff9647ae ""
   (generated)
-  "tqvj24.aux"
-  "/home/mike/Documents/comp-sci/year-2/sm/img/Assignment1/report/tqvj24.log"
-  "/home/mike/Documents/comp-sci/year-2/sm/img/Assignment1/report/tqvj24.pdf"
   "tqvj24.log"
+  "/home/mike/Documents/comp-sci/year-2/sm/img/Assignment1/report/tqvj24.pdf"
+  "/home/mike/Documents/comp-sci/year-2/sm/img/Assignment1/report/tqvj24.log"
+  "tqvj24.aux"
   "tqvj24.pdf"

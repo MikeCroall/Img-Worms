@@ -1,3 +1,7 @@
 Solution/.idea/
 .~lock.assignment.docx#
 .idea/
+*.aux
+*.fls
+*.log
+*.fdb_latexmk

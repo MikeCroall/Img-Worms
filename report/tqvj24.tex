@@ -12,8 +12,23 @@
 
 \section*{Discussion/detail of system design and choices made (5\%)}
 \subsection*{System Design}
-% python 3.5.2, opencv 3.1.0
-% gui based, key commands, explain image layout
+I wrote this script using Python 3.5.2, and OpenCv 3.1.0, to match the versions available on the DUDE PCs in the School.
+Operation of the script is done via key presses, and output of the program is both visual in the main window, as well as various images being saved to disk, in the img\_out/ directory.
+The main window displays one file ID at a time, with the top row being the w1 channel, and the bottom being w2. These are labelled, and labelling can be toggled by pressing the l key.
+Full list of commands:
+\begin{itemize}
+    \item n - next image
+    \item b - previous image
+    \item l - toggle labels
+    \item s - save the currently displayed w1 and w2 processed images
+    \item x - exit
+\end{itemize}
+There are also boolean settings toward the top of the script, to allow for automatic saving of various images. \\
+Processing of images is done in steps, with each step being a standalone method. All methods are documented and commented.
+\begin{description}
+    \item[Step 1 - Isolate] Isolate the worms
+    % TODO from here
+\end{description}
 % modular processing, in steps, individual methods
 % explain each step? With examples under 'evidence' section
 

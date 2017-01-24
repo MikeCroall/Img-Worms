@@ -43,6 +43,7 @@ current_w2_path = ""
 
 save_when_processed = True
 save_individual_worms = False
+save_individual_step_examples = True
 keep_processing = True
 label_images = True
 
@@ -350,8 +351,16 @@ def process_image(img, is_w1=True):
     :param is_w1: Should be True if img is w1 version, False otherwise
     :return: Fully processed Image object
     """
+    global save_individual_step_examples
+
+    if save_individual_step_examples and file_id == "A01":
+        cv2.imwrite(relative_image_output_folder_path + "steps/{}_step{}.jpg".format(file_id, 0), img)
+
     # Isolate the worms from the background/border
     img_1 = step_1_isolate_worms(img, is_w1)
+
+    if save_individual_step_examples and file_id == "A01":
+        cv2.imwrite(relative_image_output_folder_path + "steps/{}_step{}.jpg".format(file_id, 1), img_1)
 
     # Calculate percentage similarity to provided ground truth
     step_1b_compare_to_ground_truth(img_1, is_w1)
@@ -360,12 +369,20 @@ def process_image(img, is_w1=True):
     #                                               img_2 is coloured with worms outlined)
     img_2, watershed_markers = step_2_watershed(img_1)
 
+    if save_individual_step_examples and file_id == "A01":
+        cv2.imwrite(relative_image_output_folder_path + "steps/{}_step{}.jpg".format(file_id, 2), img_2)
+        cv2.imwrite(relative_image_output_folder_path + "steps/{}_step{}.jpg".format(file_id, "2_markers"),
+                    watershed_markers)
+
     # Use watershed_markers to save individual worms
     step_2b_save_individual_worms(watershed_markers, is_w1)
 
     # Find contours and determine shape for dead/alive classification (worms boxed with purple,
     #                                                               alive are coloured green, dead are coloured red)
     img_3 = step_3_classify_dead_or_alive(img_2)
+
+    if save_individual_step_examples and file_id == "A01":
+        cv2.imwrite(relative_image_output_folder_path + "steps/{}_step{}.jpg".format(file_id, 3), img_3)
 
     return img_3
 

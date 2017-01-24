@@ -26,10 +26,17 @@ The controls for the window that opens to show the images are shown in the title
 import numpy as np
 import cv2
 
+# SETTINGS
+label_images = True
+save_when_processed = False
+save_individual_worms = False
+save_individual_step_examples = False
+file_id_to_save_steps_of = "A01"
+
 original_image_w1, working_image_w1 = None, None
 original_image_w2, working_image_w2 = None, None
 
-# Relative folder locations will be correct upon receiving my submission - moving things may break them!
+# NOTE Relative folder locations will be correct upon receiving my submission - moving things may break them!
 relative_image_folder_path = "../../BBBC010_v1_images/"
 relative_image_ground_truth_folder_path = "../../BBBC010_v1_foreground/"
 relative_image_output_folder_path = "../../img_out/"
@@ -44,12 +51,6 @@ current_index = -1
 current_w1_path = ""
 current_w2_path = ""
 
-# SETTINGS
-label_images = True
-save_when_processed = False
-save_individual_worms = False
-save_individual_step_examples = False
-
 keep_processing = True
 
 # will automatically loop around all images without user input, good for saving all images easily
@@ -57,7 +58,8 @@ auto_advance = False
 
 
 def print_startup_info():
-    # todo print info about key commands, save folders, load folders, etc etc
+    # print info about key commands, save folders, load folders, etc etc #todo this method (printing info)
+    print("Image Processing Assignment\n\ttqvj24\nWorms")
     pass
 
 
@@ -373,10 +375,10 @@ def process_image(img, is_w1=True):
     :param is_w1: Should be True if img is w1 version, False otherwise
     :return: Fully processed Image object
     """
-    global save_individual_step_examples
+    global save_individual_step_examples, file_id_to_save_steps_of
 
     # Save pre-step if wanted, only for A01
-    if save_individual_step_examples and file_id == "A01":
+    if save_individual_step_examples and file_id == file_id_to_save_steps_of:
         print("\t{} {} - Saving individual steps in img_out/steps/".format(file_id, "w1" if is_w1 else "w2"))
         cv2.imwrite(relative_image_output_folder_path + "steps/{}_step{}.jpg".format(file_id, 0), img)
 
@@ -384,7 +386,7 @@ def process_image(img, is_w1=True):
     img_1 = step_1_isolate_worms(img, is_w1)
 
     # Save step if wanted, only for A01
-    if save_individual_step_examples and file_id == "A01":
+    if save_individual_step_examples and file_id == file_id_to_save_steps_of:
         cv2.imwrite(relative_image_output_folder_path + "steps/{}_step{}.jpg".format(file_id, 1), img_1)
 
     # Calculate percentage similarity to provided ground truth
@@ -395,7 +397,7 @@ def process_image(img, is_w1=True):
     img_2, watershed_markers = step_2_watershed(img_1)
 
     # Save step if wanted, only for A01
-    if save_individual_step_examples and file_id == "A01":
+    if save_individual_step_examples and file_id == file_id_to_save_steps_of:
         cv2.imwrite(relative_image_output_folder_path + "steps/{}_step{}.jpg".format(file_id, 2), img_2)
         cv2.imwrite(relative_image_output_folder_path + "steps/{}_step{}.jpg".format(file_id, "2_markers"),
                     watershed_markers)
@@ -408,18 +410,18 @@ def process_image(img, is_w1=True):
     img_3 = step_3_classify_dead_or_alive(img_2)
 
     # Save step if wanted, only for A01
-    if save_individual_step_examples and file_id == "A01":
+    if save_individual_step_examples and file_id == file_id_to_save_steps_of:
         cv2.imwrite(relative_image_output_folder_path + "steps/{}_step{}.jpg".format(file_id, 3), img_3)
 
     return img_3
 
 
+print_startup_info()
+
 # prepare window to display results next to originals
 main_window_name = "tqvj24 Worms - n - next, b - previous, l - toggle labels, s - save current images, x - exit"
 cv2.namedWindow(main_window_name, cv2.WINDOW_AUTOSIZE)
 load_and_process_next_images()
-
-print_startup_info()
 
 # until x pressed
 while keep_processing:

@@ -24,8 +24,9 @@ Full list of commands:
     \item s - save the current w1 and w2 processed images
     \item x - exit
 \end{itemize}
-There are also boolean settings under the imports, which enable automatic saving of various images. \\
-Processing of images is done in steps, where each step is a standalone method, all of which are documented and commented. The processing steps are as follows:
+There are settings under the imports, which enable automatic saving of various images.
+\\\\
+Processing of images is done in the following steps, where each step is a standalone, documented, and commented method.
 \begin{enumerate}
     \item Isolate and compare
     \begin{enumerate}
@@ -66,19 +67,16 @@ I then adjusted brightness, and I found OpenCV's adaptive threshold to be much m
 \\\\
 The next choice I made was border removal for w2. My initial attempt found all contours and filled the largest in black, assuming this was the border. This worked for most images, although big worm clusters occassionally had more area than the border, and so were removed instead. I instead settled on dilating a flood fill that started from the point (0, 0). This meant that it would surround the border, and slowly grow over it. Experimenting with the values given to this function resulted in excellent border removal.
 \\\\
-When comparing my binary images to the provided binary images, I decided to simply subtract one from the other, so that the resulting image's white pixels were representative of the error of my conversion. While this always results in high percentage values due to large empty spaces, and a big border surrounding the plate itself, other methods seemed to always provide no measure of how big or small their result actually was, just numbers without context.
+To compare my binary images to the ground truth, I simply subtract one from the other, causing discrepancies to show in white. This always results in high percentage values due to large empty spaces, however other methods seemed to always provide no measure of how good their result actually was, just numbers without context.
 \\\\
-To detect which worms were dead, and which were alive, I initially tried using contours, which could be checked by a method called isContourConvex, as this would indiciate whether the worm was curved or not. However, this method was inconsistent, and unreliable in actually providing a boolean return, so I changed to finding the bounding box of the contour, and checking whether it is long and thin (dead), or closer to square (alive).
+For dead/alive classification, I initially tried checking contours with a method called isContourConvex, to indicate a curve/line. This method was not working well for this purpose, so I changed to checking the width/height ratio of rotated bounding boxes around worms.
 
 \section*{Evidence of the success of the system in performing the specified tasks}
-\subsection*{Processing Steps}
-The loaded image, after shifting but before any of the major processing steps, is shown below as Figure 1.
-\\\\
-Step 1, which isolated the worms from the background and border, produced Figure 2.
-\\\\
-Step 2, which isolated individual worms, produced Figure 3 where worms are all outlined in red, and Figure 4 which has each worm coloured a different shade of grey.
-\\\\
-Step 3, which drew boxes around worms, and coloured them green if considered alive, red if considered dead, produced Figure 5, the final image which is shown on screen during runtime.
+Figure 1: The loaded image, after shifting, before any major processing steps.\\
+Figure 2: After step 1, worms isolated from the background and border.\\
+Figure 3: After step 2, worms outlined in red.\\
+Figure 4: After step 2 also, each worm marked a unique colour.\\
+Figure 5: After step 3, worms coloured green if alive, red if dead, and boxed in purple.
 
 \begin{figure}[ht!]
     \centering
@@ -120,9 +118,13 @@ Step 3, which drew boxes around worms, and coloured them green if considered ali
 \end{figure}
 
 \newpage
-\noindent Further results images, along with individual worms images, may be attained/updated by setting the relevant settings to True at the top of the script.
+\noindent Further results images, along with individual worms images, may be attained/updated by setting the relevant settings at the top of the script.
 
 \section*{Fault Cases}
-When a collection of worms overlap, the overlap is identified as one worm. Attempts made to identify separate worms that are touching were unsuccessful. If two or more worms are clustered closely but not actually touching, the script often manages to separate them, although this does depend on the size of the gaps between them. Finally, when thresholding, sometimes one curved worm is split into two, which will increase the worm count, and the two parts could be classified differently during dead/alive classification.
+When a collection of worms overlap, the overlap is identified as one worm. Attempts made to identify separate worms that are touching were unsuccessful.
+\\\\
+If two or more worms are clustered closely but not actually touching, the script often manages to separate them, although this does depend on the size of the gaps between them.
+\\\\
+Finally, when thresholding, sometimes one curved worm is split into two, which will increase the worm count, and the two parts could be classified differently during dead/alive classification.
 
 \end{document}

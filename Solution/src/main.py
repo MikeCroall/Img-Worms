@@ -28,9 +28,12 @@ import cv2
 
 original_image_w1, working_image_w1 = None, None
 original_image_w2, working_image_w2 = None, None
+
+# Relative folder locations will be correct upon receiving my submission - moving things may break them!
 relative_image_folder_path = "../../BBBC010_v1_images/"
 relative_image_ground_truth_folder_path = "../../BBBC010_v1_foreground/"
 relative_image_output_folder_path = "../../img_out/"
+
 file_id = ""
 
 with open("imgs.txt", "r") as image_names_file:
@@ -41,16 +44,21 @@ current_index = -1
 current_w1_path = ""
 current_w2_path = ""
 
+# SETTINGS
+label_images = True
 save_when_processed = False
 save_individual_worms = False
-keep_processing = True
-label_images = True
-
-# for writing report
 save_individual_step_examples = False
+
+keep_processing = True
 
 # will automatically loop around all images without user input, good for saving all images easily
 auto_advance = False
+
+
+def print_startup_info():
+    # todo print info about key commands, save folders, load folders, etc etc
+    pass
 
 
 def load_images(w1_path, w2_path):
@@ -234,7 +242,7 @@ def step_1b_compare_to_ground_truth(img_1, is_w1):
 
 def step_2_watershed(img):
     """
-    Takes an image, knowing if w1 or w2, and uses the watershed algorithm to mark the worms
+    Takes an image, knowing if w1 or w2, and uses the watershed algorithm to mark the worms different colours
 
     :param img: Image object to process
     :param is_w1: Should be True if img is w1 version, False otherwise
@@ -258,11 +266,12 @@ def step_2_watershed(img):
     unknown = cv2.subtract(definite_background, definite_foreground)
 
     ret, markers = cv2.connectedComponents(definite_foreground)
-
     markers += 1
+    # Ensure markers are visible
     markers *= 20
     markers[unknown == 255] = 0
 
+    # Run actual watershed
     img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
     markers = cv2.watershed(img, markers)
     img[markers == -1] = [0, 0, 255]
@@ -280,25 +289,34 @@ def step_2b_save_individual_worms(watershed_markers, is_w1):
     :param is_w1: Should be True if img is w1 version, False otherwise
     """
     global file_id, relative_image_output_folder_path, save_individual_worms
+    # Save border and background colour, so that they get ignored, and not saved to their own file
     border_colour = watershed_markers[0, 0]
     background_colour = watershed_markers[5, 5]
     colours_to_save = []
 
+    # Check entire image to build up list of ALL colours, except for border and background colours
     for x in range(watershed_markers.shape[0]):
         for y in range(watershed_markers.shape[1]):
             pixel_colour = watershed_markers[x, y]
+            # Ignore border and background colours
             if pixel_colour != background_colour and pixel_colour != border_colour:
+                # Don't repeat colours
                 if pixel_colour not in colours_to_save:
                     colours_to_save.append(pixel_colour)
 
+    # Print how many worms have been found
     print("\t{} {} - {} worms identified".format(file_id, "w1" if is_w1 else "w2", len(colours_to_save)))
 
+    # Save each worm in it's own file if wanted
     if save_individual_worms:
         print("\t{} {} - Saving individual worms in img_out/separated/".format(file_id, "w1" if is_w1 else "w2"))
         counter = 1
         for colour in colours_to_save:
+            # Don't modify original
             img_to_save = watershed_markers.copy()
+            # Highlight this worm
             img_to_save[watershed_markers == colour] = 255
+            # Erase everything else
             img_to_save[watershed_markers != colour] = 0
             cv2.imwrite(
                 relative_image_output_folder_path + "separated/{}_{}_{}.jpg".format(file_id, "w1" if is_w1 else "w2",
@@ -309,7 +327,8 @@ def step_2b_save_individual_worms(watershed_markers, is_w1):
 
 def step_3_classify_dead_or_alive(img):
     """
-    Takes an image, colours in alive worms green, and dead worms red, returns coloured in image
+    Takes an image, colours in alive worms green, and dead worms red,
+        draws purple boxes around all worms, returns coloured in image
 
     :param img: Image object to identify and colour worms in
     :return: Image object with worms coloured in depending on whether they are dead or alive
@@ -356,12 +375,15 @@ def process_image(img, is_w1=True):
     """
     global save_individual_step_examples
 
+    # Save pre-step if wanted, only for A01
     if save_individual_step_examples and file_id == "A01":
+        print("\t{} {} - Saving individual steps in img_out/steps/".format(file_id, "w1" if is_w1 else "w2"))
         cv2.imwrite(relative_image_output_folder_path + "steps/{}_step{}.jpg".format(file_id, 0), img)
 
     # Isolate the worms from the background/border
     img_1 = step_1_isolate_worms(img, is_w1)
 
+    # Save step if wanted, only for A01
     if save_individual_step_examples and file_id == "A01":
         cv2.imwrite(relative_image_output_folder_path + "steps/{}_step{}.jpg".format(file_id, 1), img_1)
 
@@ -372,6 +394,7 @@ def process_image(img, is_w1=True):
     #                                               img_2 is coloured with worms outlined)
     img_2, watershed_markers = step_2_watershed(img_1)
 
+    # Save step if wanted, only for A01
     if save_individual_step_examples and file_id == "A01":
         cv2.imwrite(relative_image_output_folder_path + "steps/{}_step{}.jpg".format(file_id, 2), img_2)
         cv2.imwrite(relative_image_output_folder_path + "steps/{}_step{}.jpg".format(file_id, "2_markers"),
@@ -384,6 +407,7 @@ def process_image(img, is_w1=True):
     #                                                               alive are coloured green, dead are coloured red)
     img_3 = step_3_classify_dead_or_alive(img_2)
 
+    # Save step if wanted, only for A01
     if save_individual_step_examples and file_id == "A01":
         cv2.imwrite(relative_image_output_folder_path + "steps/{}_step{}.jpg".format(file_id, 3), img_3)
 
@@ -391,20 +415,18 @@ def process_image(img, is_w1=True):
 
 
 # prepare window to display results next to originals
-main_window_name = "n - next, b - previous, l - toggle labels, s - save current images, x - exit"
+main_window_name = "tqvj24 Worms - n - next, b - previous, l - toggle labels, s - save current images, x - exit"
 cv2.namedWindow(main_window_name, cv2.WINDOW_AUTOSIZE)
 load_and_process_next_images()
 
-# todo print info about key commands, save folders, load folders, etc etc
-
-# todo go through all code and comment/docstring appropriately
+print_startup_info()
 
 # until x pressed
 while keep_processing:
     both_w1, both_w2 = None, None
 
     if label_images:
-        # create copies, to allow for removing of labels (don't modify original and working
+        # create copies, to allow for removing of labels (don't modify original and working)
         o_w1_labelled = original_image_w1.copy()
         o_w2_labelled = original_image_w2.copy()
         w_w1_labelled = working_image_w1.copy()

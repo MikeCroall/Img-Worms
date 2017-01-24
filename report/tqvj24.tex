@@ -37,7 +37,7 @@ Processing of images is done in steps, with each step being a standalone method.
     \item Individualise and Save each worm
     \begin{enumerate}
         \item Run the \textbf{watershed} algorithm to mark worms with unique colours.
-        \item Save each individual worm to disk, under img\_out/separated/ directory.
+        \item Save each individual worm to disk, under img\_out/separated/ directory. This sub-step also prints how many worms have been counted in the given image.
     \end{enumerate}
 
     \item Label each worm either dead or alive
@@ -73,7 +73,7 @@ To detect which worms were dead, and which were alive, I initially tried using c
 
 \section*{Evidence of the success of system in performing the specified task}
 \subsection*{Processing Steps}
-The loaded image, before any of the major processing steps, is shown as Figure 1.
+The loaded image, before any of the major processing steps, is shown below as Figure 1.
 \\\\
 Step 1, which isolated the worms from the background and border, produced Figure 2.
 \\\\
@@ -95,8 +95,6 @@ Step 3, which drew boxes around worms, and coloured them green if considered ali
         \captionsetup{labelformat=empty}
         \caption{Figure 2}
     \end{subfigure}
-\end{figure}
-\begin{figure}[ht!]
     \begin{subfigure}{0.5\textwidth}
         \centering
         \includegraphics[width=0.8\textwidth]{A01_step2.jpg}

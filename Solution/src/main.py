@@ -41,12 +41,15 @@ current_index = -1
 current_w1_path = ""
 current_w2_path = ""
 
-save_when_processed = True
+save_when_processed = False
 save_individual_worms = False
-save_individual_step_examples = True
 keep_processing = True
 label_images = True
 
+# for writing report
+save_individual_step_examples = False
+
+# will automatically loop around all images without user input, good for saving all images easily
 auto_advance = False
 
 

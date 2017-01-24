@@ -58,9 +58,22 @@ auto_advance = False
 
 
 def print_startup_info():
-    # print info about key commands, save folders, load folders, etc etc #todo this method (printing info)
-    print("Image Processing Assignment\n\ttqvj24\nWorms")
-    pass
+    """
+    Prints out key command and directory structure
+    """
+    # print info about key commands and relative folder path variables
+    print("Image Processing Assignment\nBy: tqvj24\n")
+    print("Key press commands:")
+    print("\tn - next image")
+    print("\tb - previous image")
+    print("\tl - toggle image labels")
+    print("\ts - save current processed w1 and w2 images")
+    print("\tx - quit")
+    print("\nPlease ensure that imgs.txt is in the same directory as this script!")
+    print("The relative folder paths (lines 40-42) must also be correct!")
+    print("I submitted the correct directory structure, so it should work straight out of the .zip")
+    print("\n\tPlease read the above information!")
+    return
 
 
 def load_images(w1_path, w2_path):

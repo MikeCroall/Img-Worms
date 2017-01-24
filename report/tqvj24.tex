@@ -1,5 +1,6 @@
 \documentclass[a4paper,12pt]{article}
 \usepackage{caption}
+\usepackage{subcaption}
 \usepackage{graphicx}
 \graphicspath{ {img/} }
 \usepackage{fancyhdr}
@@ -24,16 +25,45 @@ Full list of commands:
     \item x - exit
 \end{itemize}
 There are also boolean settings toward the top of the script, to allow for automatic saving of various images. \\
-Processing of images is done in steps, with each step being a standalone method. All methods are documented and commented.
-\begin{description}
-    \item[Step 1 - Isolate] Isolate the worms
-    % TODO from here
-\end{description}
-% modular processing, in steps, individual methods
-% explain each step? With examples under 'evidence' section
+Processing of images is done in steps, with each step being a standalone method. All methods are documented and commented. The processing steps are as follows:
+\begin{enumerate}
+    \item Isolate and Compare
+    \begin{enumerate}
+        \item\textbf{Isolate} the worms from the background and border.
+        \item\textbf{Compare} the isolated worms against the provided ground truth.
+    \end{enumerate}
+
+    \item Individualise and Save each worm
+    \begin{enumerate}
+        \item Run the \textbf{watershed} algorithm to mark worms with unique colours.
+        \item Save each individual worm to disk, under img\_out/separated/ directory.
+    \end{enumerate}
+
+    \item Label each worm either dead or alive
+    \begin{enumerate}
+        \item Find the rotated bound box of each contour, and classify dead or alive depending on the width/height ratio of said box.
+    \end{enumerate}
+\end{enumerate}
+Examples of what the above steps produce can be found under later sections. All images shown here are of A01, to clearly show the changes.
 
 \subsection*{Choices Made}
-% bit shifting before converting to 8bit for more detail
+As the images are saved as 16 bit but only really using 12 bits, when reading as 8 bit images the 4 most significant bits were lost, and the image was very dark (Figure 1), and so I read in the images as 16 bit, right shifted by 4 bits, and then converted to 8 bit. This ignores the 4 least significant bits, in favour of the 4 most significant bits. This results in a much more usable and bright image (Figure 2).\\
+\begin{figure}[ht!]
+    \centering
+    \begin{subfigure}{0.5\textwidth}
+        \centering
+        \includegraphics[width=0.8\textwidth]{A01_step0_unshifted.jpg}
+        \caption{Loaded as 8 bit}
+        \label{Figure 1}
+    \end{subfigure}%
+    \begin{subfigure}{0.5\textwidth}
+        \centering
+        \includegraphics[width=0.8\textwidth]{A01_step0.jpg}
+        \caption{Loaded as 16 bit and shifted}
+        \label{Figure 2}
+    \end{subfigure}
+\end{figure}
+
 % removing border via dialation (biggest contour didn't work because of clusters)
 % threshold vs histogram equilisation
 % comparison to ground truth (very high percentages because of big borders and empty spaces)

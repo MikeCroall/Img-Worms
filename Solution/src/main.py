@@ -62,7 +62,7 @@ def print_startup_info():
     Prints out key command and directory structure
     """
     # print info about key commands and relative folder path variables
-    print("Image Processing Assignment\nBy: tqvj24\n")
+    print("Image Processing Assignment\nBy: Mike Croall\n")
     print("Key press commands:")
     print("\tn - next image")
     print("\tb - previous image")
@@ -432,7 +432,7 @@ def process_image(img, is_w1=True):
 print_startup_info()
 
 # prepare window to display results next to originals
-main_window_name = "tqvj24 Worms - n - next, b - previous, l - toggle labels, s - save current images, x - exit"
+main_window_name = "Worms - n - next, b - previous, l - toggle labels, s - save current images, x - exit"
 cv2.namedWindow(main_window_name, cv2.WINDOW_AUTOSIZE)
 load_and_process_next_images()
 

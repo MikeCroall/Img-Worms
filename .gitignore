@@ -5,3 +5,5 @@ Solution/.idea/
 *.fls
 *.log
 *.fdb_latexmk
+report/
+*.zip

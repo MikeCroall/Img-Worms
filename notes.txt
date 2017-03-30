@@ -2,3 +2,6 @@ Python version: 3.5.2
 OpenCV version: 3.1.0
 
 Same as on DUDE PCs on campus
+
+Improvements:
+should contour on watershed separated images, instead of watershed's input image - better cluster detection.
